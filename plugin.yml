@@ -1,0 +1,7 @@
+name: Report
+version: 1.0
+main: de.raizcookie.report.main.Main
+
+commands:
+   report:
+      description: Reporte einen Spieler!

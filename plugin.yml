@@ -1,5 +1,5 @@
 name: Report
-version: 1.0
+version: 1.0.5
 main: de.raizcookie.report.main.Main
 
 commands:

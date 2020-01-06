@@ -90,7 +90,7 @@ public class ReportCommand implements CommandExecutor, Listener{
 		
 		cfg.set(target.getName() + "." + timesReportet + ".accuser", p.getName());
 		cfg.set(target.getName() + "." + timesReportet + ".reason", reason.toUpperCase());
-		p.sendMessage("§3[§cREPORT§3]§cDu hast diese Person erfolgreich §areportet§c!");
+		p.sendMessage(convertString("report_success"));
 		save();
 		int authorized = 0;
 		for (Player team : Bukkit.getServer().getOnlinePlayers()) {

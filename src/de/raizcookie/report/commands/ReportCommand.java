@@ -1,68 +1,85 @@
 package de.raizcookie.report.commands;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import de.raizcookie.report.main.Main;
+import de.raizcookie.report.methods.Messages;
+import de.raizcookie.report.methods.ReasonsFile;
 
 
 public class ReportCommand implements CommandExecutor, Listener{
 	
+	  public static File reports = new File(Main.getPlugin().getDataFolder().getAbsolutePath(), "reports.yml");
+	  public static FileConfiguration cfg = YamlConfiguration.loadConfiguration(reports);
+	  
+	  public static void save(){
+	    try{
+	      cfg.save(reports);
+	    }
+	    catch (IOException e){
+	      e.printStackTrace();
+	    }
+	  }
+	
+	public String convertString(String path) {
+		return Messages.cfg.getString(path).replace("&", "Â§");
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if(sender instanceof Player) {
-			if(args.length == 2){
-				Player p = (Player) sender;
-				Player target = Bukkit.getPlayer(args[0]);
-				String reason = args[1].toUpperCase();
-				if(target != p) {
-				if(target != null) {
-					if(!target.hasPermission("report.team")) {
-						FileConfiguration cfg = Main.getPlugin().getConfig();
-						String[] reasons = {"HACKING", "BELEIDIGUNG", "CHATVERHALTEN", "WORTWAHL", "RASSISMUS", "BUGUSING", "TEAMING", "USERNAME", "SKIN", "SPAWN-CAMPING", "SPAM", "PROVOKATION"};
-					if(reason.equalsIgnoreCase(reasons[0].toUpperCase())  || reason.equalsIgnoreCase(reasons[1].toUpperCase()) || reason.equalsIgnoreCase(reasons[2].toUpperCase()) || reason.equalsIgnoreCase(reasons[3].toUpperCase()) || reason.equalsIgnoreCase(reasons[4].toUpperCase()) || reason.equalsIgnoreCase(reasons[5].toUpperCase()) || reason.equalsIgnoreCase(reasons[6].toUpperCase()) || reason.equalsIgnoreCase(reasons[7].toUpperCase()) || reason.equalsIgnoreCase(reasons[8].toUpperCase()) || reason.equalsIgnoreCase(reasons[9].toUpperCase()) || reason.equalsIgnoreCase(reasons[10].toUpperCase()) || reason.equalsIgnoreCase(reasons[11].toUpperCase())) {
-						p.sendMessage("§3[§cREPORT§3]§cDu hast diese Person erfolgreich §areportet§c!");
-						cfg.set(p.getName(), null);
-						cfg.set(p.getName() + ".Beschuldigter", target.getName() );
-						cfg.set(p.getName() + ".Grund", reason.toUpperCase());
-						int i = 0;
-						Main.getPlugin().saveConfig();
-						for (Player team : Bukkit.getServer().getOnlinePlayers()) {
-							if (team.hasPermission("report.receive")) {
-								i++;
-								team.sendMessage("§3[§cREPORT§3] §a" + p.getName() + " §3hat den Spieler §c" + target.getName() + "§3 wegen §4" + reason.toUpperCase() + " §3reportet!");
-							}
-						}
-						if(i == 0) {
-							p.sendMessage("§3[§cREPORT§3] §cImmoment ist leider kein Berechtigter Online, der dein Report bearbeiten kann. Er wurde in den §aLogs §cgespeichert.");
-						}
-					} else {
-						p.sendMessage("§3[§cREPORT§3]§cBitte gebe einen §6Grund §caus dieser Liste an!");
-						p.sendMessage("§cHACKING, BELEIDIGUNG, CHATVERHALTEN, WORTWAHL, RASSISMUS, BUGUSING, TEAMING, USERNAME, SKIN, SPAWN-CAMPING, SPAM, PROVOKATION");
-					}
-				} else {
-					p.sendMessage("§3[§cREPORT§3]§cDu kannst kein §6Teammitglied §creporten!");
-					}
-				} else {
-					p.sendMessage("§3[§cREPORT§3]§cDieser §6Spieler §cist nicht online!");
-				}
-				} else {
-					p.sendMessage("§3[§cREPORT§3]§cDu kannst dich nicht §6selber §creporten!");
-				}
-			} else if (args.length == 1) {
-				Player p = (Player) sender;
-				p.sendMessage("§3[§cREPORT§3]§cDu musst einen §6Grund §cangeben!");
-			} else {
-				Player p = (Player) sender;
-				p.sendMessage("§3[§cREPORT§3]§cDu musst einen §6Grund §cund/oder einen §6Spieler §cangeben!");
-				p.sendMessage("§cHACKING, BELEIDIGUNG, CHATVERHALTEN, WORTWAHL, RASSISMUS, BUGUSING, TEAMING, USERNAME, SKIN, SPAWN-CAMPING, SPAM, PROVOKATION");
-				}
+		if(!(sender instanceof Player)) {
+			return false;
+		}
+		Player p = (Player) sender;
+		if(args.length != 2){
+			p.sendMessage(convertString("report_usage"));
+			p.sendMessage("Â§c" + ReasonsFile.reasons());
+			return false;
+		}		
+		Player target = Bukkit.getPlayer(args[0]);
+		String reason = args[1].toUpperCase();
+		if(target == p) {
+			p.sendMessage(convertString("report_self"));
+			return false;
+		}
+		if(target == null) {
+			p.sendMessage(convertString("report_player_offline"));
+			return false;
+		}
+		if(target.hasPermission("report.team")) {
+			p.sendMessage(convertString("report_accuse_team"));
+			return false;
+		}
+		if(!ReasonsFile.ContainsReason(reason)) {
+			p.sendMessage(convertString("report_list"));
+			p.sendMessage("Â§c" + ReasonsFile.reasons());
+			return false;
+		}
+		
+		cfg.set(target.getName() + ".accuser", p.getName());
+		cfg.set(target.getName() + ".reason", reason.toUpperCase());
+		p.sendMessage("Â§3[Â§cREPORTÂ§3]Â§cDu hast diese Person erfolgreich Â§areportetÂ§c!");
+		save();
+		int authorized = 0;
+		for (Player team : Bukkit.getServer().getOnlinePlayers()) {
+			if (team.hasPermission("report.receive")) {
+				team.sendMessage(convertString("report_team_message").replace("<PLAYERNAME>", p.getName()).replace("<TARGETNAME>", target.getName().replace("<REASON>", reason.toUpperCase())));
+				authorized++;
 			}
+		}
+		if(authorized == 0) {
+			p.sendMessage(convertString("report_noAuthorized"));
+		}
 
 		return false;
 	}

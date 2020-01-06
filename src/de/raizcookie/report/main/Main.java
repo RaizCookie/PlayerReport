@@ -15,6 +15,7 @@ public class Main extends JavaPlugin{
 			ReasonsFile.create();
 		if(!Messages.messages.exists())
 			Messages.create();
+		Messages.check();
 		@SuppressWarnings("unused")
 		PluginManager pm = Bukkit.getPluginManager();
 		getCommand("report").setExecutor(new ReportCommand());

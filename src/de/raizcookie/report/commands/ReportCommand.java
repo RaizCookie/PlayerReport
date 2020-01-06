@@ -35,6 +35,23 @@ public class ReportCommand implements CommandExecutor, Listener{
 		return Messages.cfg.getString(path).replace("&", "§");
 	}
 	
+	public int getReportSize(String targetName) {
+		int size = 0;
+		if(!reports.exists() || cfg.getConfigurationSection(targetName)==null)
+			return size;
+		size = cfg.getConfigurationSection(targetName).getKeys(false).size();
+		return size;
+	}
+	public boolean hasReported(String targetName, String playerName) {
+		if(cfg.getConfigurationSection(targetName)==null)
+			return false;
+		for(String key : cfg.getConfigurationSection(targetName).getKeys(false)) {
+			if(cfg.getString(targetName + "." + key + ".accuser").equalsIgnoreCase(playerName))
+				return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if(!(sender instanceof Player)) {
@@ -65,15 +82,20 @@ public class ReportCommand implements CommandExecutor, Listener{
 			p.sendMessage("§c" + ReasonsFile.reasons());
 			return false;
 		}
+		if(hasReported(target.getName(), p.getName())) {
+			p.sendMessage(convertString("report_repeated"));
+			return false;
+		}
+		int timesReportet = getReportSize(target.getName())+1;
 		
-		cfg.set(target.getName() + ".accuser", p.getName());
-		cfg.set(target.getName() + ".reason", reason.toUpperCase());
+		cfg.set(target.getName() + "." + timesReportet + ".accuser", p.getName());
+		cfg.set(target.getName() + "." + timesReportet + ".reason", reason.toUpperCase());
 		p.sendMessage("§3[§cREPORT§3]§cDu hast diese Person erfolgreich §areportet§c!");
 		save();
 		int authorized = 0;
 		for (Player team : Bukkit.getServer().getOnlinePlayers()) {
 			if (team.hasPermission("report.receive")) {
-				team.sendMessage(convertString("report_team_message").replace("<PLAYERNAME>", p.getName()).replace("<TARGETNAME>", target.getName().replace("<REASON>", reason.toUpperCase())));
+				team.sendMessage(convertString("report_team_message").replace("<PLAYERNAME>", p.getName()).replace("<TARGETNAME>", target.getName()).replace("<REASON>", reason.toUpperCase()));
 				authorized++;
 			}
 		}

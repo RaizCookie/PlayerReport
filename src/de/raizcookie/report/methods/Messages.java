@@ -29,6 +29,7 @@ public class Messages{
       cfg.set("report_list", "&3[&cREPORT&3]&cUse one of the reasons &6below&c.");
       cfg.set("report_team_message", "&3[&cREPORT&3] &a<PLAYERNAME> &3has just reported &c<TARGETNAME> &3because of &4<REASON>!");
       cfg.set("report_noAuthorized", "&3[&cREPORT&3] &cThere is no authorized person online. Your report was saved in the &aLogs &c.");
+      cfg.set("report_repeated", "&3[&cREPORT&3] &cYou have already reported this &6Player&c.");
       cfg.set("report_success", "§3[§cREPORT§3]§cYou have successfully §areported§c this &6Player&c!");
       save();
     }
@@ -56,6 +57,9 @@ public class Messages{
     if (!cfg.contains("report_team_message")) {
     	cfg.set("report_team_message", "&3[&cREPORT&3] &a<PLAYERNAME> &3has just reported &c<TARGETNAME> &3because of &4<REASON>!");
       }
+    if (!cfg.contains("report_repeated")) {
+    	cfg.set("report_repeated", "&3[&cREPORT&3] &cYou have already reported this &6Player&c.");
+    }
     if (!cfg.contains("report_noAuthorized")) {
     	cfg.set("report_noAuthorized", "&3[&cREPORT&3] &cThere is no authorized person online. Your report was saved in the &aLogs &c.");
     }

@@ -1,7 +1,7 @@
-name: Report
-version: 1.0.5
+name: PlayerReport
+version: 1.0.7
 main: de.raizcookie.report.main.Main
 
 commands:
    report:
-      description: Reporte einen Spieler!
+      description: Report a Player!
